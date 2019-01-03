@@ -39,7 +39,15 @@ class Playlist: # Holds songs as nodes
                 return True
             node = node.Next
         return False
-
+        
+    def getSongs(self): # Returns songs in playlist in a list
+        node = self.current
+        list1 = []
+        while node:
+            list1.append(node.Data.songArtist + " - " + node.Data.songName)
+            node = node.Next
+        return list1
+        
 class ListPlaylist: # Holds playlists as nodes
     def __init__(self):
         self.current = None
@@ -83,7 +91,23 @@ class ListPlaylist: # Holds playlists as nodes
                 return node.Data.checkSong(song)
             node = node.Next
         return False
-    
+        
+    def getAllPlaylist(self): # Returns all playlist names in a list
+        node = self.current
+        list1 = []
+        while node:
+            list1.append(node.Data.playListName)
+            node = node.Next
+        return list1
+
+    def getSongList(self, playlist): # Returns songs in playlist in a list
+        node = self.current
+        while node:
+            if node.Data.playListName == playlist:
+                return node.Data.getSongs()
+            node = node.Next
+        return []
+        
 class LoadMusic:
     def __init__(self):
         self.reloadMusic()
@@ -97,6 +121,7 @@ class LoadMusic:
         for line in file:
             list1.append(str(line))
         list1 = [word.strip() for word in list1]
+        list1 = list1[::-1] # Reverse list
         
         # Parse all songs
         for plName in list1:
@@ -107,6 +132,7 @@ class LoadMusic:
             for line1 in file:
                 list2.append(str(line1))
             list2 = [word.strip() for word in list2]
+            list2 = list2[::-1] # Reverse list
             
             # Parse song name and artist
             for x in list2:
@@ -132,14 +158,23 @@ class LoadMusic:
         
     def checkPlaylistSong(self, playlist, song): # Accepts string. Returns True if song exists, returns False otherwise
         return self.mainList.checkPlaylistSong(playlist, song)
-        
+   
+    def getAllPlaylist(self): # Returns all playlist names in a list
+        return self.mainList.getAllPlaylist()
+
+    def getSongList(self, playlist): # Returns songs in playlist in a list
+        return self.mainList.getSongList(playlist)
+    
     def printList(self):
         self.mainList.printList()
 
 class MusicSystem: # Add new playlists and new songs using this class
     def __init__(self):
         self.m = LoadMusic()
-    
+        self.vlc = BindVLC()
+        self.playingPlaylist = ""
+        self.playingSong = ""
+        
     def newPlaylist(self, playlist):
         # Create new file with playlist name
         file = open(playlist + ".txt", "w+")
@@ -191,19 +226,18 @@ class MusicSystem: # Add new playlists and new songs using this class
         # Reload LoadMusic()
         self.m.reloadMusic()
         
-    def getPlaylist(self, playlist): # Returns playlist name (string)
-        # check playlist exist
-        # if exist:
-            # reload.getplaylist
-        print("ree")
+    def getAllPlaylist(self): # Returns all playlist names in a list
+        return self.m.getAllPlaylist()
     
-    def getSong(self, playlist, name):
-        print("ree")
+    def getSongList(self, playlist): # Returns songs in playlist in a list
+        return self.m.getSongList(playlist)
   
     def addQueue(self, playlist): # Adds playlist to queue, clears queue if full
         print("ree")
   
-    def playSong(self, playlist, name): # Example, playSong("All Songs", "Adele - Hello")
+    def play(self, playlist, name): # Example, playSong("All Songs", "Adele - Hello")
+        self.playingPlaylist = playlist
+        self.playingSong = name
         # If song is already playing
             # Empty queue
         #Else
@@ -211,7 +245,17 @@ class MusicSystem: # Add new playlists and new songs using this class
             
         # Adds playlist to queue starting at song
         # Play song from queue
-  
+        print("ree")
+   
+    def pause(self):
+        self.vlc.pause()
+        
+    def forward(self, playlist, name):
+        self.vlc.play()
+        
+    def backward(self):
+        self.vlc.play()
+    
     def printList(self):
         self.m.printList()
         
@@ -233,8 +277,12 @@ class BindVLC:
         return self.player.is_playing()
 
 # Test #
-abc = MusicSystem()
-abc.printList()
+#abc = MusicSystem()
+#abc.printList()
 
 #abc.newSong("Hello", "adele - hello")
 #abc.printList()
+
+
+
+

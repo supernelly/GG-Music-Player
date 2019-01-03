@@ -24,177 +24,81 @@ def About():
     
 def play():
     global selected
-    global playClick
-    global songPause
-    global currentlyPlaying
+    global playlistSelected
     
-    if selected == "":
-        print("Nothing selected")
-        
+    if selected == "Nothing":
+        print("Nothing selected")  
     else: 
-        if playClick == True:
-            playClick = False
-            player.play(selected)
-            label2.config(text = selected)
-            currentlyPlaying = selected
-            
-        if currentlyPlaying == selected and songPause == True:
-            songPause = False
-            player.pause()
-            label2.config(text = selected)
-            currentlyPlaying = selected
-            
-        if currentlyPlaying != selected:
-            player.stop()
-            player.play(selected)
-            label2.config(text = selected)
-            currentlyPlaying = selected    
+        currentlyPlaying = True
+        player.play(playlistSelected, selected)
    
 def pause():
-    global songPause   
-    songPause = True
     player.pause() 
     
 def forward():
-    global currentlyPlaying
-    global currentlyPlayingPlaylist
-    global list2
-    
-    if selected == "" or currentlyPlayingPlaylist == "":
-        print("Nothing selected") 
-    else:
-        file = open(currentlyPlayingPlaylist,"r").readlines()
-        list2 = []
-        row = 0
-        for line in file:
-            list2.append(str(line))
-        list2 = [word.strip() for word in list1]    
-        
-        currentSongIndex = currentSongIndexNumber(currentlyPlaying)
-        
-        if currentSongIndex < len(list2) - 1:
-            player.stop()
-            player.play(list2[currentSongIndex + 1])
-            label2.config(text = list2[currentSongIndex + 1])
-            currentlyPlaying = list2[currentSongIndex + 1]
-        if currentSongIndex == len(list2) - 1:
-            player.stop()
-            player.play(list2[0])
-            label2.config(text = list2[0])
-            currentlyPlaying = list2[0]  
+    # do nothing if nothing is playing
+    player.forward()
     
 def backward():
-    global currentlyPlaying
-    global currentlyPlayingPlaylist
-    global list2
+    # do nothing if nothing is playing
+    player.backward()
     
-    if selected == "" or currentlyPlayingPlaylist == "":
-        print("Nothing selected") 
-    else:
-        file = open(currentlyPlayingPlaylist,"r").readlines()
-        list2 = []
-        row = 0
-        for line in file:
-            list2.append(str(line))
-        list2 = [word.strip() for word in list1]    
-        
-        currentSongIndex = currentSongIndexNumber(currentlyPlaying)
-        
-        if currentSongIndex > -1:
-            player.stop()
-            player.play(list2[currentSongIndex - 1])
-            label2.config(text = list2[currentSongIndex - 1])
-            currentlyPlaying = list2[currentSongIndex - 1] 
-
 def cboxselect(evt): # Selecting playlist from combo box
     global firstClick
     global list1
+    global selected
     global playlistSelected
     firstClick = False
-    
-    # check if playlist exist
-        # if playlist exist, open file, and make new playlist node, then add to label
-        # if not choose from list of existing playlists
-    
-    
-    
+        
     # Tkinter passes an event object to cboxselect()
     lb.delete(0, END)
-    u = cboxPlaylist.get()
-    file = open(u,"r").readlines()
-    playlistSelected = u
-    list1 = []
+    list1 = player.getSongList(cboxPlaylist.get())
+    playlistSelected = cboxPlaylist.get()
     
-    for line in file:
-        list1.append(str(line))
-
-    list1 = [word.strip() for word in list1]
-
     for v in range (len(list1)):
         lb.insert(v, list1[v])
+    
+    try:
+        selected = list1[0]
+        label4.config(text = selected)
+    except:
+        selected = "Nothing"
+        label4.config(text = "Nothing")
+        
     # cboxPlaylist.current(0) sets the selected item
     # cboxPlaylist.get() gets the selected item
     
 def lbselect(evt): # Selecting song from playlist
     global selected
-    global currentlyPlayingPlaylist
-    global playlistSelected
+    global firstClick
+    global list1
     
     # Tkinter passes an event object to lbselect()
     if firstClick == False:
         try:
             selected = lb.get(lb.curselection())
             label4.config(text = selected)
-            if selected == currentlyPlaying or currentlyPlaying == "Nothing":
-                currentlyPlayingPlaylist = playlistSelected
         except:
-            print("error: lbselect")
+            try:
+                selected = list1[0]
+                label4.config(text = selected)
+            except:
+                selected = "Nothing"
+                label4.config(text = "Nothing")                
             
 def reloadList(): # Used once at start
-    global list1
-    global playlistSelected
-    
-    file = open("All Playlist.txt","r").readlines()
-    playlistSelected = "All Playlist.txt"
-    list1 = []
-    
-    for line in file:
-        list1.append(str(line))
-
-    list1 = [word.strip() for word in list1]
-    return list1
- 
-def currentSongIndexNumber(songPlaying): # Gets index value for playing song, returns -1 otherwise
-    global list2
-    
-    if currentlyPlaying != "Nothing":
-        i = 0
-        for song in list2:
-            if songPlaying == song:
-                break
-            else:
-                i += 1
-        return i
-    else:
-        return -1      
-        
+    list1 = player.getAllPlaylist()
+    return list1      
 
     
 # Start Here #   
 # Initialize #
-currentSongIndex = 0 # Index number for currently playing song
-currentlyPlaying = "Nothing" # Name for currently playing song
-currentlyPlayingPlaylist = "" # Playlist for currently playing song
+selected = "Nothing"
 playlistSelected = ""
-
 list1 = []
-list2 = []
-plSelectedDifferent = False
 firstClick = True
-playClick = True
-songPause = False
-selected = ""
-player = BindVLC()
+currentlyPlaying = False
+player = MusicSystem()
 
 ### GUI ###
 root = tk.Tk()
