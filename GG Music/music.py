@@ -1,4 +1,6 @@
-import math, sys, copy, random, vlc, os
+import math, sys, copy, random, vlc, os, time
+from threading import Thread
+from queue import Queue
 # Interface only needs to import MusicSystem from this file
 # Interface only needs to use MusicSystem.
 
@@ -172,8 +174,11 @@ class MusicSystem: # Add new playlists and new songs using this class
     def __init__(self):
         self.m = LoadMusic()
         self.vlc = BindVLC()
+        self.queue = Queue()
         self.playingPlaylist = ""
         self.playingSong = ""
+        self.firstPlay = True
+        self.playPressed = False
         
     def newPlaylist(self, playlist):
         # Create new file with playlist name
@@ -232,24 +237,60 @@ class MusicSystem: # Add new playlists and new songs using this class
     def getSongList(self, playlist): # Returns songs in playlist in a list
         return self.m.getSongList(playlist)
   
-    def addQueue(self, playlist): # Adds playlist to queue, clears queue if full
-        print("ree")
-  
+    def addQueue(self, playlist, name): # Adds playlist to queue starting at song name
+        while not self.queue.empty(): # Empty queue
+            self.queue.get()
+
+        list1 = self.getSongList(playlist)
+        reachedName = False
+        for a in list1:
+            if a == name:
+                reachedName = True
+                self.queue.put(a)
+            elif reachedName == True:
+                self.queue.put(a)
+        self.queue.put(None)
+        self.playPressed = True
+        
+    def thread1(self):
+        while True:
+            #if a is None: return # Poison pill
+            time.sleep(1)
+            if self.vlc.playStatus() == 0: # If nothing is playing
+                self.playPressed = False
+                a = self.queue.get()
+                if a is not None:
+                    self.vlc.play(a + ".mp3")
+                self.playingSong = a
+                print(a)
+                time.sleep(1)
+            elif self.vlc.playStatus() == 1 and self.playPressed == True: # If something is playing and play has been pressed
+                self.playPressed = False
+                self.vlc.stop()
+                a = self.queue.get()
+                self.vlc.play(a + ".mp3")
+                print(a)
+                time.sleep(1)
+                
     def play(self, playlist, name): # Example, playSong("All Songs", "Adele - Hello")
-        self.playingPlaylist = playlist
-        self.playingSong = name
-        # If song is already playing
-            # Empty queue
-        #Else
-            # Create queue in new tread
+        if self.firstPlay == True: # First time playing
+            self.firstPlay = False
+            # Play song in new tread
+            self.thread1 = Thread( target=self.thread1, args=() )
+            self.thread1.start()
             
-        # Adds playlist to queue starting at song
-        # Play song from queue
-        print("ree")
-   
+        if self.playingSong == name and self.playingPlaylist == playlist: # If song is already playing
+            print("Song already playing")
+        else:
+            self.playingPlaylist = playlist
+            self.playingSong = name
+            
+            # Adds playlist to queue starting at song
+            self.addQueue(playlist, name)
+            
     def pause(self):
         self.vlc.pause()
-        
+
     def forward(self, playlist, name):
         self.vlc.play()
         
@@ -282,7 +323,5 @@ class BindVLC:
 
 #abc.newSong("Hello", "adele - hello")
 #abc.printList()
-
-
 
 

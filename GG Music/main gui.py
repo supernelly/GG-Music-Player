@@ -26,11 +26,7 @@ def play():
     global selected
     global playlistSelected
     
-    if selected == "Nothing":
-        print("Nothing selected")  
-    else: 
-        currentlyPlaying = True
-        player.play(playlistSelected, selected)
+    player.play(playlistSelected, selected)
    
 def pause():
     player.pause() 
@@ -90,6 +86,8 @@ def reloadList(): # Used once at start
     list1 = player.getAllPlaylist()
     return list1      
 
+def thread2(): # This thread handles changing the labels
+    print("re")
     
 # Start Here #   
 # Initialize #
@@ -97,7 +95,6 @@ selected = "Nothing"
 playlistSelected = ""
 list1 = []
 firstClick = True
-currentlyPlaying = False
 player = MusicSystem()
 
 ### GUI ###
