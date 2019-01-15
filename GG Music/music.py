@@ -67,16 +67,6 @@ class ListPlaylist: # Holds playlists as nodes
         while node:
             node.Data.printList()
             node = node.Next
-            
-    """ no point
-    def getPlaylist(self, playlist): # Accepts string. Returns playlist name (string) if exists, returns "null" string otherwise
-        node = self.current
-        while node:
-            if node.Data.playListName == playlist:
-                return node.Data.playListName
-            node = node.Next
-        return "null"
-    """
     
     def checkPlaylist(self, playlist): # Accepts string. Returns True if exists, returns False otherwise
         node = self.current
@@ -149,12 +139,6 @@ class LoadMusic:
             # Add playlist to mainList
             self.mainList.addPlaylist(self.mainPlaylist)   
        
-    #def getPlaylist(self, playlist): # Returns playlist name (string)
-    #    print("ree") 
-
-    #def getSong(self, playlist, name): # Accepts string. Returns song 
-    #    print("ree")
-    
     def checkPlaylist(self, playlist): # Accepts string. Returns True if playlist exists, returns False otherwise
         return self.mainList.checkPlaylist(playlist)
         
@@ -179,6 +163,8 @@ class MusicSystem: # Add new playlists and new songs using this class
         self.playingSong = ""
         self.firstPlay = True
         self.playPressed = False
+        self.songPaused = False
+        self.pos = 0
         
     def newPlaylist(self, playlist):
         # Create new file with playlist name
@@ -276,7 +262,7 @@ class MusicSystem: # Add new playlists and new songs using this class
         if self.firstPlay == True: # First time playing
             self.firstPlay = False
             # Play song in new tread
-            self.thread1 = Thread( target=self.thread1, args=() )
+            self.thread1 = Thread(target=self.thread1, args=())
             self.thread1.start()
             
         if self.playingSong == name and self.playingPlaylist == playlist: # If song is already playing
@@ -285,18 +271,29 @@ class MusicSystem: # Add new playlists and new songs using this class
             self.playingPlaylist = playlist
             self.playingSong = name
             
-            # Adds playlist to queue starting at song
-            self.addQueue(playlist, name)
-            
+            self.addQueue(playlist, name) # Adds playlist to queue starting at song
+        
     def pause(self):
         self.vlc.pause()
 
-    def forward(self, playlist, name):
-        self.vlc.play()
+    def forward(self):
+        self.vlc.setPosition(1.0)
         
     def backward(self):
-        self.vlc.play()
-    
+        list1 = self.getSongList(self.playingPlaylist)
+        if self.playingSong == list1[0]: # Check if at beginning of song list
+            self.addQueue(self.playingPlaylist, self.playingSong) # Adds playlist to queue starting at song
+        else: # Play previous song
+            list1.reverse()
+            count = 0
+            for x in list1:
+                if x == self.playingSong:
+                    count1 = count
+                    break
+                count += 1
+            self.addQueue(self.playingPlaylist, list1[count1 + 1]) # Adds playlist to queue starting at song
+            self.playingSong = list1[count1 + 1]
+            
     def printList(self):
         self.m.printList()
         
@@ -317,6 +314,12 @@ class BindVLC:
     def playStatus(self): # Returns 0 if nothing is playing, 1 if playing
         return self.player.is_playing()
 
+    def getPosition(self): # Get song position as percentage between 0.0 and 1.0 (float)
+        return self.player.get_position()
+        
+    def setPosition(self, pos): # Set song position as percentage between 0.0 and 1.0 (float)
+        self.player.set_position(pos)
+    
 # Test #
 #abc = MusicSystem()
 #abc.printList()

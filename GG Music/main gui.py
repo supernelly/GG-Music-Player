@@ -1,14 +1,20 @@
-import math, sys, copy, random
+import math, sys, copy, random, time
 from tkinter import *
 import tkinter as tk
 from tkinter.ttk import *
 from tkinter import filedialog
 from music import MusicSystem
-   
+from threading import Thread
+
 ### CONTROL LOGIC ###
 def AddSong():
     name1 = askopenfilename()
     print(name1)
+    # Create new window to select playlist to add to (except All Songs, since its going there anyways)
+    
+    
+    
+    player.newSong(playlist, name1)
 
 def NewPlaylist():
     name2 = asksaveasfilename()
@@ -87,8 +93,10 @@ def reloadList(): # Used once at start
     return list1      
 
 def thread2(): # This thread handles changing the labels
-    print("re")
-    
+    while True:
+        time.sleep(0.5)
+        label2.config(text = player.playingSong)
+        
 # Start Here #   
 # Initialize #
 selected = "Nothing"
@@ -121,6 +129,8 @@ label1 = Label(root, text = "Playing:")
 label1.grid(column = 0, row = 0, sticky = E)
 label2 = Label(root, text = "Nothing")
 label2.grid(column = 1, row = 0, sticky = W)
+thread2 = Thread(target=thread2, args=())
+thread2.start()          
 
 # Play, Pause, Backward, Forward Buttons
 buttonPlay = Button(root, text = 'Play', width = 9, command = play)
@@ -149,7 +159,5 @@ label3 = Label(root, text = "Selected:")
 label3.grid(column = 2, row = 1)
 label4 = Label(root, text = "Nothing")
 label4.grid(column = 3, row = 1, columnspan = 4, sticky = W)
-
-# Check for when song is finished (use player.playStatus())
 
 mainloop()
