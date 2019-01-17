@@ -49,7 +49,14 @@ class Playlist: # Holds songs as nodes
             list1.append(node.Data.songArtist + " - " + node.Data.songName)
             node = node.Next
         return list1
-        
+    
+    def removeHead(self):      
+        while self.current:
+            self.current = None
+            self.playListName = None
+            self.size = 0
+            self.current = self.current.Next
+    
 class ListPlaylist: # Holds playlists as nodes
     def __init__(self):
         self.current = None
@@ -100,15 +107,32 @@ class ListPlaylist: # Holds playlists as nodes
             node = node.Next
         return []
         
+    def removeHead(self): # Removes reference to first node
+        while self.current:
+            self.current = None
+            self.size = 0
+            self.current.Data.removeHead()
+            self.current = self.current.Next
+    
 class LoadMusic:
     def __init__(self):
+        self.folderPath = "C:/Users/nelso/Documents/GitHub/GG-Music-Player/GG Music"
         self.reloadMusic()
+        
+    def setFolderPath(self, path):
+        self.folderPath = path
+        #self.mainList.removeHead()
+        del self.mainList
+        self.reloadMusic()
+    
+    def getFolderPath(self):
+        return self.folderPath
         
     def reloadMusic(self): # Use at start and everytime new playlist or song is added
         self.mainList = ListPlaylist() # Create ListPlaylist object
         
         # Parse all playlists
-        file = open("All Playlist.txt", "r").readlines()
+        file = open(self.folderPath + "/" + "All Playlist.txt", "r").readlines()
         list1 = [] # List that holds names of playlists
         for line in file:
             list1.append(str(line))
@@ -120,7 +144,7 @@ class LoadMusic:
             self.mainPlaylist = Playlist(plName.replace(".txt", "")) # Create playlist object
             
             list2 = [] # List that holds song names
-            file = open(plName, "r").readlines()
+            file = open(self.folderPath + "/" + plName, "r").readlines()
             for line1 in file:
                 list2.append(str(line1))
             list2 = [word.strip() for word in list2]
@@ -165,14 +189,23 @@ class MusicSystem: # Add new playlists and new songs using this class
         self.playPressed = False
         self.songPaused = False
         self.pos = 0
+            
+    def setFolderPath(self, path):
+        self.m.setFolderPath(path)
         
+        # Reload LoadMusic()
+        self.m.reloadMusic()
+    
+    def getFolderPath(self):
+        return self.m.getFolderPath()
+    
     def newPlaylist(self, playlist):
         # Create new file with playlist name
-        file = open(playlist + ".txt", "w+")
+        file = open(self.m.getFolderPath() + "/" + playlist + ".txt", "w+")
         file.close()
         
         # Add to 'All Playlist.txt'
-        file = open("All Playlist.txt", "a+")
+        file = open(self.m.getFolderPath() + "/" + "All Playlist.txt", "a+")
         file.write("\n" + playlist + ".txt")
         file.close()
         
@@ -182,35 +215,35 @@ class MusicSystem: # Add new playlists and new songs using this class
     def newSong(self, playlist, name): # Accepts string. Adds song to playlist file
         if self.m.checkPlaylist(playlist) == True and self.m.checkPlaylistSong(playlist, name) == False and self.m.checkPlaylistSong("All Songs", name) == False: # If playlist exists and song doesn't exist in playlist and song doesn't exist in "All Songs"
             # Add file name to playlist txt file
-            if os.path.getsize(playlist + ".txt") > 0: # If playlist isn't empty
-                file = open(playlist + ".txt", "a+")
+            if os.path.getsize(self.m.getFolderPath() + "/" + playlist + ".txt") > 0: # If playlist isn't empty
+                file = open(self.m.getFolderPath() + "/" + playlist + ".txt", "a+")
                 file.write("\n" + name + ".mp3")
                 file.close()
             else: # If playlist is empty
-                file = open(playlist + ".txt", "a+")
+                file = open(self.m.getFolderPath() + "/" + playlist + ".txt", "a+")
                 file.write(name + ".mp3")
                 file.close()                
             
             if playlist != "All Songs.txt":
                 # Add file name to "All Songs.txt"
-                file = open("All Songs.txt", "a+")
+                file = open(self.m.getFolderPath() + "/" + "All Songs.txt", "a+")
                 file.write("\n" + name + ".mp3")
                 file.close()
         
         if self.m.checkPlaylist(playlist) == False and self.m.checkPlaylistSong("All Songs", name) == False: # If playlist doesn't exists and song doesn't exists in "All Songs"
             # Add file name to "All Songs.txt"
-            file = open("All Songs.txt", "a+")
+            file = open(self.m.getFolderPath() + "/" + "All Songs.txt", "a+")
             file.write("\n" + name + ".mp3")
             file.close()
         
         if self.m.checkPlaylist(playlist) == True and self.m.checkPlaylistSong("All Songs", name) == True and self.m.checkPlaylistSong(playlist, name): # If playlist exists and song already exists in "All Songs" but isn't in playlist
             # Add file name to playlist txt file
-            if os.path.getsize(playlist + ".txt") > 0: # If playlist isn't empty
-                file = open(playlist + ".txt", "a+")
+            if os.path.getsize(self.m.getFolderPath() + "/" + playlist + ".txt") > 0: # If playlist isn't empty
+                file = open(self.m.getFolderPath() + "/" + playlist + ".txt", "a+")
                 file.write("\n" + name + ".mp3")
                 file.close()
             else: # If playlist is empty
-                file = open(playlist + ".txt", "a+")
+                file = open(self.m.getFolderPath() + "/" + playlist + ".txt", "a+")
                 file.write(name + ".mp3")
                 file.close()  
             
@@ -246,7 +279,7 @@ class MusicSystem: # Add new playlists and new songs using this class
                 self.playPressed = False
                 a = self.queue.get()
                 if a is not None:
-                    self.vlc.play(a + ".mp3")
+                    self.vlc.play(self.getFolderPath() + "/" + a + ".mp3")
                 self.playingSong = a
                 print(a)
                 time.sleep(1)
@@ -254,9 +287,11 @@ class MusicSystem: # Add new playlists and new songs using this class
                 self.playPressed = False
                 self.vlc.stop()
                 a = self.queue.get()
-                self.vlc.play(a + ".mp3")
+                self.vlc.play(self.getFolderPath() + "/" + a + ".mp3")
                 print(a)
                 time.sleep(1)
+            if self.queue.empty():
+                self.playingSong = ""
                 
     def play(self, playlist, name): # Example, playSong("All Songs", "Adele - Hello")
         if self.firstPlay == True: # First time playing
@@ -291,8 +326,11 @@ class MusicSystem: # Add new playlists and new songs using this class
                     count1 = count
                     break
                 count += 1
-            self.addQueue(self.playingPlaylist, list1[count1 + 1]) # Adds playlist to queue starting at song
-            self.playingSong = list1[count1 + 1]
+            try:
+                self.addQueue(self.playingPlaylist, list1[count1 + 1]) # Adds playlist to queue starting at song
+                self.playingSong = list1[count1 + 1]
+            except:
+                print("No queue")
             
     def printList(self):
         self.m.printList()
@@ -322,9 +360,7 @@ class BindVLC:
     
 # Test #
 #abc = MusicSystem()
-#abc.printList()
-
-#abc.newSong("Hello", "adele - hello")
+#abc.SetFolder(a)
 #abc.printList()
 
 

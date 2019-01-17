@@ -2,20 +2,48 @@ import math, sys, copy, random, time
 from tkinter import *
 import tkinter as tk
 from tkinter.ttk import *
-from tkinter import filedialog
+from tkinter.filedialog import *
 from music import MusicSystem
 from threading import Thread
 
 ### CONTROL LOGIC ###
-def AddSong():
-    name1 = askopenfilename()
-    print(name1)
-    # Create new window to select playlist to add to (except All Songs, since its going there anyways)
+def SetFolder(): # Changes library location. If "All Playlist.txt" and "All Songs.txt" doesn't exist there, create it
+    path = askdirectory()
+    player.setFolderPath(path)
     
-    
-    
-    player.newSong(playlist, name1)
+    # check for playlist. and all songs.txt
+    print(player.getFolderPath())
+    cboxPlaylist.config(values = reloadList())
 
+def AddSong(): # Adds new song to library, get song name/artist and adds to library folder
+    # Create new window
+    t = tk.Toplevel()
+    t.wm_title("Add Song")
+    l = tk.Label(t, text="ree")
+    l.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    
+    buttonSelectSong = tk.Button(t, text = 'Select Song', width = 9, command = selectSong)
+    buttonSelectSong.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    
+    buttonSelectPL= tk.Button(t, text = 'Select Playlist', width = 9, command = selectPL)
+    buttonSelectPL.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    
+    buttonAdd= tk.Button(t, text = 'Add Song', width = 9, command = selectAdd)
+    buttonAdd.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    # 
+    # Create new window to select playlist to add to (except All Songs, since its going there anyways)
+
+    #player.newSong(playlist, name1)
+    
+def selectSong():
+    name1 = askopenfilename(initialdir = "/",title = "Select Song",filetypes = (("mp3 files","*.mp3"),))
+    print(name1)
+def selectPL():
+    print("re")
+def selectAdd():
+    #player.newSong(playlist, name1)
+    print("re")
+    
 def NewPlaylist():
     name2 = asksaveasfilename()
     print(name2)
@@ -96,9 +124,12 @@ def thread2(): # This thread handles changing the labels
     while True:
         time.sleep(0.5)
         label2.config(text = player.playingSong)
-        
+   
 # Start Here #   
 # Initialize #
+addSong = ""
+addPlaylist = ""
+
 selected = "Nothing"
 playlistSelected = ""
 list1 = []
@@ -116,7 +147,8 @@ root.geometry('550x300')
 # Navigation bar
 filemenu = Menu(menu, tearoff = 0)
 menu.add_cascade(label = "File", menu = filemenu)
-filemenu.add_command(label = "Add Song", command = AddSong)
+filemenu.add_command(label = "Set Folder", command = SetFolder)
+filemenu.add_command(label = "Add Song To Library", command = AddSong)
 filemenu.add_command(label = "New Playlist", command = NewPlaylist)
 filemenu.add_separator()
 filemenu.add_command(label = "Exit", command = Quit)
@@ -127,7 +159,7 @@ helpmenu.add_command(label = "About...", command = About)
 # Song playing label
 label1 = Label(root, text = "Playing:")
 label1.grid(column = 0, row = 0, sticky = E)
-label2 = Label(root, text = "Nothing")
+label2 = Label(root, text = "")
 label2.grid(column = 1, row = 0, sticky = W)
 thread2 = Thread(target=thread2, args=())
 thread2.start()          
@@ -153,6 +185,7 @@ cboxPlaylist.grid(column = 1, row = 1, sticky = W)
 lb = Listbox(root, selectmode = "single", width = 40)
 lb.bind('<<ListboxSelect>>',lbselect)
 lb.grid(column = 0, row = 2, columnspan = 2)
+
 
 # Song selected label
 label3 = Label(root, text = "Selected:")
