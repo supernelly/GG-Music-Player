@@ -191,8 +191,22 @@ class MusicSystem: # Add new playlists and new songs using this class
         self.pos = 0
             
     def setFolderPath(self, path):
-        self.m.setFolderPath(path)
+        # If "All Playlist.txt" and "All Songs.txt" doesn't exist there, create it
+        try:
+            file = open(path + "All Playlist.txt", "a+")
+            file.close()
+        except:
+            file.close()
+            # Create the file
         
+        try:
+            file = open(path + "All Songs.txt", "a+")
+            file.close()   
+        except:
+            file.close()
+            # Create the file
+               
+        self.m.setFolderPath(path)
         # Reload LoadMusic()
         self.m.reloadMusic()
     
@@ -273,7 +287,6 @@ class MusicSystem: # Add new playlists and new songs using this class
         
     def thread1(self):
         while True:
-            #if a is None: return # Poison pill
             time.sleep(1)
             if self.vlc.playStatus() == 0: # If nothing is playing
                 self.playPressed = False

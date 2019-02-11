@@ -1,4 +1,4 @@
-import math, sys, copy, random, time
+import math, sys, copy, time
 from tkinter import *
 import tkinter as tk
 from tkinter.ttk import *
@@ -7,12 +7,11 @@ from music import MusicSystem
 from threading import Thread
 
 ### CONTROL LOGIC ###
-def SetFolder(): # Changes library location. If "All Playlist.txt" and "All Songs.txt" doesn't exist there, create it
+def SetFolder(): # Changes library location
     path = askdirectory()
     player.setFolderPath(path)
     
     # check for playlist. and all songs.txt
-    print(player.getFolderPath())
     cboxPlaylist.config(values = reloadList())
 
 def AddSong(): # Adds new song to library, get song name/artist and adds to library folder
@@ -25,8 +24,13 @@ def AddSong(): # Adds new song to library, get song name/artist and adds to libr
     buttonSelectSong = tk.Button(t, text = 'Select Song', width = 9, command = selectSong)
     buttonSelectSong.pack(side="top", fill="both", expand=True, padx=5, pady=5)
     
-    buttonSelectPL= tk.Button(t, text = 'Select Playlist', width = 9, command = selectPL)
-    buttonSelectPL.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    
+    lbPL = Listbox(root, selectmode = "single", width = 40)
+    lbPL.bind('<<ListboxSelect>>',plselect)
+    lbPL.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+    list1 = player.getAllPlaylist()
+    for v in range (len(list1)):
+        lbPL.insert(v, list1[v])
     
     buttonAdd= tk.Button(t, text = 'Add Song', width = 9, command = selectAdd)
     buttonAdd.pack(side="top", fill="both", expand=True, padx=5, pady=5)
@@ -38,7 +42,7 @@ def AddSong(): # Adds new song to library, get song name/artist and adds to libr
 def selectSong():
     name1 = askopenfilename(initialdir = "/",title = "Select Song",filetypes = (("mp3 files","*.mp3"),))
     print(name1)
-def selectPL():
+def plselect(evt):
     print("re")
 def selectAdd():
     #player.newSong(playlist, name1)
